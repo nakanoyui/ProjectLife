@@ -14,6 +14,7 @@ public class ActionButton : Button
         None,
         Cast,
         Fish,
+        FishingBattle,
     }
     
     private ActionButtonState _currentState = ActionButtonState.Cast;
@@ -24,15 +25,15 @@ public class ActionButton : Button
         set { _currentState = value; }
     }
     
-    private Subject<float> _onClickCastButton = new();
+    private Subject<bool> _onClickCastButton = new();
     private Subject<bool> _onClickFishButton = new();
+    private Subject<bool> _onHoldFishingBattleButton = new();
+    private Subject<bool> _onReleaseFishingBattleButton = new();
     
-    public IObservable<float> OnClickCastButton { get { return _onClickCastButton; } }
+    public IObservable<bool> OnClickCastButton { get { return _onClickCastButton; } }
     public IObservable<bool> OnClickFishButton { get { return _onClickFishButton; } }
-
-    private float _holdPower;
-    
-    private const float HoldPowerMax = 3.0f;
+    public IObservable<bool> OnHoldFishingBattleButton { get { return _onHoldFishingBattleButton; } }
+    public IObservable<bool> OnReleaseFishingBattleButton { get { return _onReleaseFishingBattleButton; } }
     
     private void Start()
     {
@@ -43,20 +44,11 @@ public class ActionButton : Button
     {
         OnButtonHold.Subscribe(_ =>
         {
-            if (_holdPower < HoldPowerMax)
+            switch (_currentState)
             {
-                _holdPower += Time.deltaTime;
-            }
-            else
-            {
-                switch (_currentState)
-                {
-                    case ActionButtonState.Cast:
-                        _onClickCastButton.OnNext(_holdPower);
-                        _currentState = ActionButtonState.Fish;
-                        _holdPower = 0.0f;
-                        break;
-                }
+                case ActionButtonState.FishingBattle:
+                    _onHoldFishingBattleButton.OnNext(true);
+                    break;
             }
         });
 
@@ -64,6 +56,10 @@ public class ActionButton : Button
         {
             switch (_currentState)
             {
+                case ActionButtonState.Cast:
+                    _onClickCastButton.OnNext(true);
+                    _currentState = ActionButtonState.Fish;
+                    break;  
                 case ActionButtonState.Fish:
                     _onClickFishButton.OnNext(true);
                     _currentState = ActionButtonState.None;
@@ -73,12 +69,14 @@ public class ActionButton : Button
         
         OnButtonUp.Subscribe(_ =>
         {
+        });
+        
+        OnButtonRelease.Subscribe(_ =>
+        {
             switch (_currentState)
             {
-                case ActionButtonState.Cast:
-                    _onClickCastButton.OnNext(_holdPower);
-                    _currentState = ActionButtonState.Fish;
-                    _holdPower = 0.0f;
+                case ActionButtonState.FishingBattle:
+                    _onReleaseFishingBattleButton.OnNext(true);
                     break;
             }
         });

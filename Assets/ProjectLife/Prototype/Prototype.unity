@@ -264,6 +264,22 @@ MonoBehaviour:
             m_StringArgument: 
             m_BoolArgument: 0
           m_CallState: 2
+  - eventID: 0
+    callback:
+      m_PersistentCalls:
+        m_Calls:
+        - m_Target: {fileID: 47550697}
+          m_TargetAssemblyTypeName: Button, Assembly-CSharp
+          m_MethodName: OnPointerUp
+          m_Mode: 1
+          m_Arguments:
+            m_ObjectArgument: {fileID: 0}
+            m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+            m_IntArgument: 0
+            m_FloatArgument: 0
+            m_StringArgument: 
+            m_BoolArgument: 0
+          m_CallState: 2
 --- !u!1 &257178011
 GameObject:
   m_ObjectHideFlags: 0
@@ -701,6 +717,18 @@ MonoBehaviour:
             m_StringArgument: 
             m_BoolArgument: 0
           m_CallState: 2
+--- !u!114 &916719566 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 5322717749218499688, guid: 502d6825ecf3e3946b4eed0852decfce,
+    type: 3}
+  m_PrefabInstance: {fileID: 6658826040967181659}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 99e6153246852ab4ba5ef98d4d91ad10, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &922219364
 GameObject:
   m_ObjectHideFlags: 0
@@ -764,7 +792,7 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 922219364}
-  m_LocalRotation: {x: 0.22975291, y: -0.0000000187227, z: 0.0000000044198294, w: 0.973249}
+  m_LocalRotation: {x: 0.22975291, y: 0.0000000187227, z: -0.0000000044198294, w: 0.973249}
   m_LocalPosition: {x: 0, y: 3.5, z: -5}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
@@ -843,9 +871,19 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4203875418621088040, guid: d17096c364f5d2746af598036dc65b95,
         type: 3}
-      propertyPath: biteSpeed
-      value: 3
-      objectReference: {fileID: 0}
+      propertyPath: _actionButton
+      value: 
+      objectReference: {fileID: 47550697}
+    - target: {fileID: 4203875418621088040, guid: d17096c364f5d2746af598036dc65b95,
+        type: 3}
+      propertyPath: _lureController
+      value: 
+      objectReference: {fileID: 916719566}
+    - target: {fileID: 4203875418621088040, guid: d17096c364f5d2746af598036dc65b95,
+        type: 3}
+      propertyPath: _playerTransform
+      value: 
+      objectReference: {fileID: 2014498745}
     - target: {fileID: 9012594353781678288, guid: d17096c364f5d2746af598036dc65b95,
         type: 3}
       propertyPath: m_LocalEulerAnglesHint.y
@@ -1226,7 +1264,7 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1822581725}
-  m_LocalRotation: {x: 0.22975291, y: -0.0000000187227, z: 0.0000000044198294, w: 0.973249}
+  m_LocalRotation: {x: 0.22975291, y: 0.0000000187227, z: -0.0000000044198294, w: 0.973249}
   m_LocalPosition: {x: 0, y: 3.5, z: -5}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
@@ -1745,24 +1783,9 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5322717749218499688, guid: 502d6825ecf3e3946b4eed0852decfce,
         type: 3}
-      propertyPath: _backSpeed
-      value: 0.5
-      objectReference: {fileID: 0}
-    - target: {fileID: 5322717749218499688, guid: 502d6825ecf3e3946b4eed0852decfce,
-        type: 3}
       propertyPath: _fishBrain
       value: 
       objectReference: {fileID: 1969524821}
-    - target: {fileID: 5322717749218499688, guid: 502d6825ecf3e3946b4eed0852decfce,
-        type: 3}
-      propertyPath: _backHeight
-      value: 1.5
-      objectReference: {fileID: 0}
-    - target: {fileID: 5322717749218499688, guid: 502d6825ecf3e3946b4eed0852decfce,
-        type: 3}
-      propertyPath: _castHeight
-      value: 3
-      objectReference: {fileID: 0}
     - target: {fileID: 5322717749218499688, guid: 502d6825ecf3e3946b4eed0852decfce,
         type: 3}
       propertyPath: _actionButton

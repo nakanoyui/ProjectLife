@@ -5,18 +5,28 @@ using Cysharp.Threading.Tasks;
 using UnityEngine;
 using UniRx;
 using Unity.VisualScripting;
+using UnityEngine.Events;
 using UnityEngine.Serialization;
 
 /// <summary>
-/// Lurewe]]e7Controller
+/// LureController
 /// </summary>
 public class LureController : MonoBehaviour
 {
-    [SerializeField] private PlayerController _playerController;
+    [SerializeField] private Transform _playerTransform;
 
     [SerializeField] private ActionButton _actionButton;
 
     [SerializeField] private FishBrain _fishBrain;
+
+    private UnityEvent _onCallBack = new UnityEvent();
+    
+    public UnityEvent OnCallBack
+    {
+        get { return _onCallBack; }
+    }
+    
+    [SerializeField, Range(0.0f, 5.0f)] private float _castDistance;
     
     [SerializeField, Range(0.0f, 5.0f)] private float _castHeight;
     
@@ -29,25 +39,27 @@ public class LureController : MonoBehaviour
     
     private void Start()
     {
+        _onCallBack.AddListener(Back);
+        
         OnEvent();
     }
 
     private void OnEvent()
     {
-        _actionButton.OnClickCastButton.Subscribe(holdPower => { Cast(holdPower); });
+        _actionButton.OnClickCastButton.Subscribe(_ => { Cast(); });
 
-        _actionButton.OnClickFishButton.Subscribe(_ => { Back(); });
+        _actionButton.OnClickFishButton.Subscribe(_ => { _onCallBack.Invoke(); });
     }
 
-    private void Cast(float holdPower)
+    private void Cast()
     {
         _originPosition = transform.position;
         
         var startPos = transform.position;
         
-        var forward = _playerController.transform.forward;
+        var forward = _playerTransform.forward;
 
-        var endPos = startPos + forward * holdPower;
+        var endPos = startPos + forward * _castDistance;
         
         // Todo:将来的に海の高さに変更する
         endPos.y = 0;

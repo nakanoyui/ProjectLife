@@ -153,8 +153,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c92f922b6e7842647850a92a9a0e0dac, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _itemPrefabs: {fileID: 0}
-  _actionButton: {fileID: 0}
 --- !u!1001 &4431586959989248562
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -250,9 +248,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 99e6153246852ab4ba5ef98d4d91ad10, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _playerController: {fileID: 1358678876834977854}
+  _playerTransform: {fileID: 1934662779737649986}
   _actionButton: {fileID: 0}
+  _fishBrain: {fileID: 0}
+  _castDistance: 3
   _castHeight: 3
+  _backHeight: 1.5
+  _castSpeed: 1
+  _backSpeed: 0.5
 --- !u!4 &4182315325512283609 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: c57adc10bacc22c468fe3def071b6cda,
