@@ -4,14 +4,15 @@ using DG.Tweening;
 using UniRx;
 using Unity.Mathematics;
 using UnityEngine;
+using UnityEngine.Rendering;
 
 public class FishBrain : MonoBehaviour
 {
-    [SerializeField] private Transform _playerTransform;
+    private Transform _playerTransform;
 
-    [SerializeField] private LureController _lureController;
+    private LureController _lureController;
     
-    [SerializeField] private ActionButton _actionButton;
+    private ActionButton _actionButton;
 
     private Renderer _ownRenderer;
     
@@ -41,6 +42,13 @@ public class FishBrain : MonoBehaviour
     }
 
     private FishState _fishState;
+
+    public void Init(Transform playerTransform,LureController lureController,ActionButton actionButton)
+    {
+        _playerTransform = playerTransform;
+        _lureController = lureController;
+        _actionButton = actionButton;
+    }
     
     private void Start()
     {
@@ -48,15 +56,17 @@ public class FishBrain : MonoBehaviour
         
         OnEvent();
     }
-
+    
     private void OnEvent()
     {
-        _onCast.Subscribe(targetPos => { LureBite(targetPos); });
+        _onCast.Subscribe(targetPos => { LureBiteAsync(targetPos); });
 
-        _onStateChanger.Subscribe(_ => { StartCoroutine(FishStateChange());});
+        _onStateChanger.Subscribe(_ => { StartCoroutine(FishStateChangeAsync());});
         
         _actionButton.OnHoldFishingBattleButton.Subscribe(_ =>
         {
+            if (_lureController.FishBrain != this) return;
+            
             var targetPos = _playerTransform.position;
             targetPos.y = 0.0f;
             var ownPos = transform.position;
@@ -80,6 +90,7 @@ public class FishBrain : MonoBehaviour
                         _lureController.GetComponent<Renderer>().material.color = Color.white;
                         _lureController.OnCallBack.Invoke();
                         _actionButton.CurrentState = ActionButton.ActionButtonState.None;
+                        Destroy(gameObject);
                     }
                     break;
                 case FishState.GetOutOfLine:
@@ -91,6 +102,8 @@ public class FishBrain : MonoBehaviour
         
         _actionButton.OnReleaseFishingBattleButton.Subscribe(_ =>
         {
+            if (_lureController.FishBrain != this) return;
+
             var dir = (_playerTransform.position - transform.position).normalized;
 
             switch (_fishState)
@@ -105,15 +118,14 @@ public class FishBrain : MonoBehaviour
         });
     }
 
-    private async void LureBite(Vector3 targetPos)
+    private async void LureBiteAsync(Vector3 targetPos)
     {
         var dir = (targetPos - transform.position).normalized;
         
         transform.rotation = Quaternion.LookRotation(dir);
         
         await transform.DOMove(targetPos, biteSpeed).SetEase(Ease.OutCubic).AsyncWaitForCompletion();
-
-        // Change Fishing Battle
+        
         _actionButton.CurrentState = ActionButton.ActionButtonState.FishingBattle;
 
         _onStateChanger.OnNext(true);
@@ -121,7 +133,7 @@ public class FishBrain : MonoBehaviour
         _lureController.GetComponent<Renderer>().material.color = Color.gray;
     }
 
-    private IEnumerator FishStateChange()
+    private IEnumerator FishStateChangeAsync()
     {
         float _time = 0.0f;
         

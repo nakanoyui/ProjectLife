@@ -45,9 +45,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bf88b1609c321394cb8db5b493c419d7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _playerTransform: {fileID: 0}
-  _lureController: {fileID: 0}
-  _actionButton: {fileID: 0}
   _restTime: 2
   _getOutOfLineTime: 1.5
   _attractSpeed: 1

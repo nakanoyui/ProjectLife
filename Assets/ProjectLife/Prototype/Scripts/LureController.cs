@@ -17,7 +17,13 @@ public class LureController : MonoBehaviour
 
     [SerializeField] private ActionButton _actionButton;
 
-    [SerializeField] private FishBrain _fishBrain;
+    private FishBrain _fishBrain;
+    
+    public FishBrain FishBrain
+    {
+        get { return _fishBrain;}
+        set { _fishBrain = value; }
+    }
 
     private UnityEvent _onCallBack = new UnityEvent();
     
@@ -67,7 +73,7 @@ public class LureController : MonoBehaviour
         Vector3 half = Vector3.Lerp(startPos, endPos, 0.75f);
         half.y += Vector3.up.y + _castHeight;
             
-        StartCoroutine(LerpCast(transform,startPos,half, endPos, _castSpeed));
+        StartCoroutine(LerpCastAsync(transform,startPos,half, endPos, _castSpeed));
     }
 
     private void Back()
@@ -79,10 +85,10 @@ public class LureController : MonoBehaviour
         Vector3 half = Vector3.Lerp(startPos, endPos, 0.75f);
         half.y += Vector3.up.y + _backHeight;
         
-        StartCoroutine(LerpBack(transform,startPos,half,endPos,_backSpeed));
+        StartCoroutine(LerpBackAsync(transform,startPos,half,endPos,_backSpeed));
     }
 
-    private IEnumerator LerpCast(Transform target, Vector3 start,Vector3 half, Vector3 end, float duration)
+    private IEnumerator LerpCastAsync(Transform target, Vector3 start,Vector3 half, Vector3 end, float duration)
     {
         float speed = 0f;
         while (true)
@@ -100,7 +106,7 @@ public class LureController : MonoBehaviour
         }
     }
 
-    private IEnumerator LerpBack(Transform target, Vector3 start,Vector3 half, Vector3 end, float duration)
+    private IEnumerator LerpBackAsync(Transform target, Vector3 start,Vector3 half, Vector3 end, float duration)
     {
         float speed = 0f;
         while (true)
