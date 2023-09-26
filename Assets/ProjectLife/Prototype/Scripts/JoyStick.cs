@@ -16,11 +16,11 @@ public class JoyStick : MonoBehaviour
 
     private int _stickMovement;
 
-    public static float _joyStickX;
+    private static float _joyStickX;
 
     public static float JoyStickX => _joyStickX;
     
-    public static float _joyStickY;
+    private static float _joyStickY;
 
     public static float JoyStickY => _joyStickY;
     

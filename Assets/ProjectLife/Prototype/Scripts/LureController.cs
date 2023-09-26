@@ -8,18 +8,25 @@ using Unity.VisualScripting;
 using UnityEngine.Serialization;
 
 /// <summary>
-/// FishController
+/// Lurewe]]e7Controller
 /// </summary>
-public class FishController : MonoBehaviour
+public class LureController : MonoBehaviour
 {
     [SerializeField] private PlayerController _playerController;
 
     [SerializeField] private ActionButton _actionButton;
 
+    [SerializeField] private FishBrain _fishBrain;
+    
     [SerializeField, Range(0.0f, 5.0f)] private float _castHeight;
     
-    private Transform _targetTransform;
+    [SerializeField, Range(0.0f, 5.0f)] private float _backHeight;
 
+    private Vector3 _originPosition;
+    
+    [SerializeField] private float _castSpeed = 1.0f;
+    [SerializeField] private float _backSpeed = 1.5f;
+    
     private void Start()
     {
         OnEvent();
@@ -29,35 +36,71 @@ public class FishController : MonoBehaviour
     {
         _actionButton.OnClickCastButton.Subscribe(holdPower => { Cast(holdPower); });
 
-        _actionButton.OnClickFishButton.Subscribe(_ => { });
+        _actionButton.OnClickFishButton.Subscribe(_ => { Back(); });
     }
 
     private void Cast(float holdPower)
     {
+        _originPosition = transform.position;
+        
         var startPos = transform.position;
         
         var forward = _playerController.transform.forward;
 
-        var endPos = transform.position + forward * holdPower;
+        var endPos = startPos + forward * holdPower;
+        
         // Todo:将来的に海の高さに変更する
         endPos.y = 0;
         
         Vector3 half = Vector3.Lerp(startPos, endPos, 0.75f);
         half.y += Vector3.up.y + _castHeight;
             
-        StartCoroutine(LerpThrow(gameObject,startPos,half, endPos, 1.0f));
+        StartCoroutine(LerpCast(transform,startPos,half, endPos, _castSpeed));
     }
 
-    private IEnumerator LerpThrow(GameObject target, Vector3 start,Vector3 half, Vector3 end, float duration)
+    private void Back()
+    {
+        var startPos = transform.position;
+
+        var endPos = _originPosition;
+        
+        Vector3 half = Vector3.Lerp(startPos, endPos, 0.75f);
+        half.y += Vector3.up.y + _backHeight;
+        
+        StartCoroutine(LerpBack(transform,startPos,half,endPos,_backSpeed));
+    }
+
+    private IEnumerator LerpCast(Transform target, Vector3 start,Vector3 half, Vector3 end, float duration)
     {
         float speed = 0f;
         while (true)
         {
             if (speed >= 1.0f)
+            {
+                _fishBrain.OnCast.OnNext(target.position);
                 yield break;
+            }
 
             speed += Time.deltaTime / duration;
-            target.transform.position = CalcLerpPoint(start, half,end, speed);
+            target.position = CalcLerpPoint(start, half,end, speed);
+
+            yield return null;
+        }
+    }
+
+    private IEnumerator LerpBack(Transform target, Vector3 start,Vector3 half, Vector3 end, float duration)
+    {
+        float speed = 0f;
+        while (true)
+        {
+            if (speed >= 1.0f)
+            {
+                _actionButton.CurrentState = ActionButton.ActionButtonState.Cast;
+                yield break;
+            }
+
+            speed += Time.deltaTime / duration;
+            target.position = CalcLerpPoint(start, half,end, speed);
 
             yield return null;
         }

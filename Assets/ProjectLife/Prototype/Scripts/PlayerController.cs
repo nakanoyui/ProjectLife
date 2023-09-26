@@ -10,21 +10,7 @@ using UnityEngine.Serialization;
 /// </summary>
 public class PlayerController : MonoBehaviour
 {
-    [SerializeField]
-    private GameObject _itemPrefabs;
-
-    [SerializeField]
-    private ActionButton _actionButton;
-    
     private float _speed = 5.0f;
-
-    private bool _isCatchFish;
-
-    public bool IsCatchFish
-    {
-        get { return _isCatchFish;}
-        set { _isCatchFish = value; }
-    }
 
     private void Start()
     {
@@ -33,22 +19,22 @@ public class PlayerController : MonoBehaviour
 
     private void Update()
     {
-        Vector3 moveDir = ((transform.forward * JoyStick.JoyStickY) + (transform.right * JoyStick.JoyStickX)).normalized;
-
-        transform.position += moveDir * _speed * Time.deltaTime;
+        Move();
     }
 
     private void OnEvent()
     {
-        _actionButton.OnClickButton.Subscribe(_ =>
+    }
+
+    private void Move()
+    {
+        var joyStickDir = new Vector3(JoyStick.JoyStickX, 0,JoyStick.JoyStickY).normalized;
+        
+        transform.position += joyStickDir * _speed * Time.deltaTime;
+
+        if (joyStickDir.sqrMagnitude > 0.1f)
         {
-            _itemPrefabs.SetActive(true);
-
-
-            if (_isCatchFish)
-            {
-                Debug.Log("魚を釣りあげた。");
-            }
-        });
+            transform.rotation = Quaternion.LookRotation(joyStickDir);
+        }
     }
 }
