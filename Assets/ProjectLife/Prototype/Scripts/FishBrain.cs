@@ -1,5 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Threading;
+using Cysharp.Threading.Tasks;
 using DG.Tweening;
 using UniRx;
 using Unity.Mathematics;
@@ -43,6 +45,8 @@ public class FishBrain : MonoBehaviour
 
     private FishState _fishState;
 
+    private CancellationToken _token = new();
+
     public void Init(Transform playerTransform,LureController lureController,ActionButton actionButton)
     {
         _playerTransform = playerTransform;
@@ -61,7 +65,7 @@ public class FishBrain : MonoBehaviour
     {
         _onCast.Subscribe(targetPos => { LureBiteAsync(targetPos); });
 
-        _onStateChanger.Subscribe(_ => { StartCoroutine(FishStateChangeAsync());});
+        _onStateChanger.Subscribe(_ => { FishStateChangeAsync().Forget();});
         
         _actionButton.OnHoldFishingBattleButton.Subscribe(_ =>
         {
@@ -133,15 +137,17 @@ public class FishBrain : MonoBehaviour
         _lureController.GetComponent<Renderer>().material.color = Color.gray;
     }
 
-    private IEnumerator FishStateChangeAsync()
+    private async UniTask FishStateChangeAsync()
     {
+        _token.ThrowIfCancellationRequested();
+        
         float _time = 0.0f;
         
         while (true)
         {
             if (_actionButton.CurrentState != ActionButton.ActionButtonState.FishingBattle)
             {
-                yield break;
+                break;
             }
 
             _time += Time.deltaTime;
@@ -165,8 +171,8 @@ public class FishBrain : MonoBehaviour
                     }
                     break;  
             }
-            
-            yield return null;
+
+            await UniTask.Yield(_token);
         }
     }
 }

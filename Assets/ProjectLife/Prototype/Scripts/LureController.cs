@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Threading;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
 using UniRx;
@@ -43,6 +44,8 @@ public class LureController : MonoBehaviour
     [SerializeField] private float _castSpeed = 1.0f;
     [SerializeField] private float _backSpeed = 1.5f;
     
+    private CancellationToken _token = new();
+    
     private void Start()
     {
         _onCallBack.AddListener(Back);
@@ -59,6 +62,8 @@ public class LureController : MonoBehaviour
 
     private void Cast()
     {
+        InputBlocker.Enable();
+        
         _originPosition = transform.position;
         
         var startPos = transform.position;
@@ -72,12 +77,14 @@ public class LureController : MonoBehaviour
         
         Vector3 half = Vector3.Lerp(startPos, endPos, 0.75f);
         half.y += Vector3.up.y + _castHeight;
-            
-        StartCoroutine(LerpCastAsync(transform,startPos,half, endPos, _castSpeed));
+        
+        LerpCastAsync(transform,startPos,half, endPos, _castSpeed).Forget();
     }
 
     private void Back()
     {
+        InputBlocker.Enable();
+
         var startPos = transform.position;
 
         var endPos = _originPosition;
@@ -85,42 +92,50 @@ public class LureController : MonoBehaviour
         Vector3 half = Vector3.Lerp(startPos, endPos, 0.75f);
         half.y += Vector3.up.y + _backHeight;
         
-        StartCoroutine(LerpBackAsync(transform,startPos,half,endPos,_backSpeed));
+        LerpBackAsync(transform,startPos,half,endPos,_backSpeed).Forget();
     }
 
-    private IEnumerator LerpCastAsync(Transform target, Vector3 start,Vector3 half, Vector3 end, float duration)
+    private async UniTask LerpCastAsync(Transform target, Vector3 start,Vector3 half, Vector3 end, float duration)
     {
+        _token.ThrowIfCancellationRequested();
+        
         float speed = 0f;
         while (true)
         {
             if (speed >= 1.0f)
             {
                 _fishBrain.OnCast.OnNext(target.position);
-                yield break;
+                InputBlocker.Disable();
+                
+                break;
             }
 
             speed += Time.deltaTime / duration;
             target.position = CalcLerpPoint(start, half,end, speed);
 
-            yield return null;
+            await UniTask.Yield(_token);
         }
     }
 
-    private IEnumerator LerpBackAsync(Transform target, Vector3 start,Vector3 half, Vector3 end, float duration)
+    private async UniTask LerpBackAsync(Transform target, Vector3 start,Vector3 half, Vector3 end, float duration)
     {
+        _token.ThrowIfCancellationRequested();
+        
         float speed = 0f;
         while (true)
         {
             if (speed >= 1.0f)
             {
                 _actionButton.CurrentState = ActionButton.ActionButtonState.Cast;
-                yield break;
+                InputBlocker.Disable();
+
+                break;
             }
 
             speed += Time.deltaTime / duration;
             target.position = CalcLerpPoint(start, half,end, speed);
 
-            yield return null;
+            await UniTask.Yield(_token);
         }
     }
 
