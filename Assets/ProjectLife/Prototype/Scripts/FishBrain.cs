@@ -1,84 +1,68 @@
-using System.Collections;
-using System.Collections.Generic;
 using System.Threading;
 using Cysharp.Threading.Tasks;
 using DG.Tweening;
 using UniRx;
-using Unity.Mathematics;
 using UnityEngine;
-using UnityEngine.Rendering;
 
 public class FishBrain : MonoBehaviour
 {
-    private Transform _playerTransform;
-
-    private LureController _lureController;
-    
-    private ActionButton _actionButton;
-
-    private Renderer _ownRenderer;
-    
-    private Subject<Vector3> _onCast = new();
-
-    public Subject<Vector3> OnCast
-    {
-        get { return _onCast; }
-    }
-
-    private Subject<bool> _onStateChanger = new();
-
     [SerializeField] private float _restTime;
-    
+
     [SerializeField] private float _getOutOfLineTime;
 
     [SerializeField] private float _attractSpeed;
-    
+
     [SerializeField] private float _separateSpeed;
 
     [SerializeField] private float biteSpeed;
-    
-    private enum FishState
-    {
-        Rest,
-        GetOutOfLine,
-    }
+
+    private readonly Subject<bool> _onStateChanger = new();
+
+    private readonly CancellationToken _token = new();
+
+    private ActionButton _actionButton;
 
     private FishState _fishState;
 
-    private CancellationToken _token = new();
+    private LureController _lureController;
 
-    public void Init(Transform playerTransform,LureController lureController,ActionButton actionButton)
+    private Renderer _ownRenderer;
+    private Transform _playerTransform;
+
+    public Subject<Vector3> OnCast { get; } = new();
+
+    private void Start()
+    {
+        _ownRenderer = GetComponentInChildren<Renderer>();
+
+        OnEvent();
+    }
+
+    public void Init(Transform playerTransform, LureController lureController, ActionButton actionButton)
     {
         _playerTransform = playerTransform;
         _lureController = lureController;
         _actionButton = actionButton;
     }
-    
-    private void Start()
-    {
-        _ownRenderer = GetComponentInChildren<Renderer>();
-        
-        OnEvent();
-    }
-    
+
     private void OnEvent()
     {
-        _onCast.Subscribe(targetPos => { LureBiteAsync(targetPos); });
+        OnCast.Subscribe(targetPos => { LureBiteAsync(targetPos); });
 
-        _onStateChanger.Subscribe(_ => { FishStateChangeAsync().Forget();});
-        
+        _onStateChanger.Subscribe(_ => { FishStateChangeAsync().Forget(); });
+
         _actionButton.OnHoldFishingBattleButton.Subscribe(_ =>
         {
             if (_lureController.FishBrain != this) return;
-            
+
             var targetPos = _playerTransform.position;
             targetPos.y = 0.0f;
             var ownPos = transform.position;
             ownPos.y = 0.0f;
-            var dir =(targetPos - ownPos).normalized;
+            var dir = (targetPos - ownPos).normalized;
 
             transform.rotation = Quaternion.LookRotation(dir);
-            
+
             switch (_fishState)
             {
                 case FishState.Rest:
@@ -86,7 +70,7 @@ public class FishBrain : MonoBehaviour
                     _lureController.transform.position += dir * Time.deltaTime * _attractSpeed;
 
                     var distance = _playerTransform.position - _lureController.transform.position;
-                    
+
                     // 釣りあげた
                     if (distance.sqrMagnitude < 3.0f)
                     {
@@ -96,14 +80,15 @@ public class FishBrain : MonoBehaviour
                         _actionButton.CurrentState = ActionButton.ActionButtonState.None;
                         Destroy(gameObject);
                     }
+
                     break;
                 case FishState.GetOutOfLine:
                     transform.position -= dir * Time.deltaTime * _separateSpeed;
                     _lureController.transform.position -= dir * Time.deltaTime * _separateSpeed;
-                    break;  
+                    break;
             }
         });
-        
+
         _actionButton.OnReleaseFishingBattleButton.Subscribe(_ =>
         {
             if (_lureController.FishBrain != this) return;
@@ -117,7 +102,7 @@ public class FishBrain : MonoBehaviour
                     break;
                 case FishState.GetOutOfLine:
                     // Nothing
-                    break;  
+                    break;
             }
         });
     }
@@ -125,30 +110,27 @@ public class FishBrain : MonoBehaviour
     private async void LureBiteAsync(Vector3 targetPos)
     {
         var dir = (targetPos - transform.position).normalized;
-        
+
         transform.rotation = Quaternion.LookRotation(dir);
-        
+
         await transform.DOMove(targetPos, biteSpeed).SetEase(Ease.OutCubic).AsyncWaitForCompletion();
-        
+
         _actionButton.CurrentState = ActionButton.ActionButtonState.FishingBattle;
 
         _onStateChanger.OnNext(true);
-        
+
         _lureController.GetComponent<Renderer>().material.color = Color.gray;
     }
 
     private async UniTask FishStateChangeAsync()
     {
         _token.ThrowIfCancellationRequested();
-        
-        float _time = 0.0f;
-        
+
+        var _time = 0.0f;
+
         while (true)
         {
-            if (_actionButton.CurrentState != ActionButton.ActionButtonState.FishingBattle)
-            {
-                break;
-            }
+            if (_actionButton.CurrentState != ActionButton.ActionButtonState.FishingBattle) break;
 
             _time += Time.deltaTime;
 
@@ -161,6 +143,7 @@ public class FishBrain : MonoBehaviour
                         _time = 0.0f;
                         _fishState = FishState.GetOutOfLine;
                     }
+
                     break;
                 case FishState.GetOutOfLine:
                     _ownRenderer.material.color = Color.red;
@@ -169,10 +152,17 @@ public class FishBrain : MonoBehaviour
                         _time = 0.0f;
                         _fishState = FishState.Rest;
                     }
-                    break;  
+
+                    break;
             }
 
             await UniTask.Yield(_token);
         }
+    }
+
+    private enum FishState
+    {
+        Rest,
+        GetOutOfLine
     }
 }

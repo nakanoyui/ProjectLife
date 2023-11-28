@@ -1,11 +1,8 @@
 using System;
-using System.Collections;
-using System.Collections.Generic;
 using UniRx;
-using UnityEngine;
 
 /// <summary>
-/// ActionButton
+///     ActionButton
 /// </summary>
 public class ActionButton : Button
 {
@@ -15,26 +12,25 @@ public class ActionButton : Button
         Cast,
         Fish,
         FishingBattle,
+        PlantsWatering
     }
-    
-    private ActionButtonState _currentState = ActionButtonState.Cast;
 
-    public ActionButtonState CurrentState
-    {
-        get { return _currentState; }
-        set { _currentState = value; }
-    }
-    
-    private Subject<bool> _onClickCastButton = new();
-    private Subject<bool> _onClickFishButton = new();
-    private Subject<bool> _onHoldFishingBattleButton = new();
-    private Subject<bool> _onReleaseFishingBattleButton = new();
-    
-    public IObservable<bool> OnClickCastButton { get { return _onClickCastButton; } }
-    public IObservable<bool> OnClickFishButton { get { return _onClickFishButton; } }
-    public IObservable<bool> OnHoldFishingBattleButton { get { return _onHoldFishingBattleButton; } }
-    public IObservable<bool> OnReleaseFishingBattleButton { get { return _onReleaseFishingBattleButton; } }
-    
+    private readonly Subject<bool> _onClickCastButton = new();
+    private readonly Subject<bool> _onClickFishButton = new();
+    private readonly Subject<bool> _onHoldFishingBattleButton = new();
+
+    private readonly Subject<bool> _onPlantsWateringButton = new();
+    private readonly Subject<bool> _onReleaseFishingBattleButton = new();
+
+    public ActionButtonState CurrentState { get; set; } = ActionButtonState.None;
+
+    public IObservable<bool> OnClickCastButton => _onClickCastButton;
+    public IObservable<bool> OnClickFishButton => _onClickFishButton;
+    public IObservable<bool> OnHoldFishingBattleButton => _onHoldFishingBattleButton;
+    public IObservable<bool> OnReleaseFishingBattleButton => _onReleaseFishingBattleButton;
+
+    public IObservable<bool> OnPlantsClickWateringButton => _onPlantsWateringButton;
+
     private void Start()
     {
         OnEvent();
@@ -44,7 +40,7 @@ public class ActionButton : Button
     {
         OnButtonHold.Subscribe(_ =>
         {
-            switch (_currentState)
+            switch (CurrentState)
             {
                 case ActionButtonState.FishingBattle:
                     _onHoldFishingBattleButton.OnNext(true);
@@ -54,26 +50,28 @@ public class ActionButton : Button
 
         OnButtonDown.Subscribe(_ =>
         {
-            switch (_currentState)
+            switch (CurrentState)
             {
                 case ActionButtonState.Cast:
                     _onClickCastButton.OnNext(true);
-                    _currentState = ActionButtonState.Fish;
-                    break;  
+                    CurrentState = ActionButtonState.Fish;
+                    break;
                 case ActionButtonState.Fish:
                     _onClickFishButton.OnNext(true);
-                    _currentState = ActionButtonState.None;
+                    CurrentState = ActionButtonState.None;
+                    break;
+                case ActionButtonState.PlantsWatering:
+                    _onPlantsWateringButton.OnNext(true);
+                    CurrentState = ActionButtonState.PlantsWatering;
                     break;
             }
         });
-        
-        OnButtonUp.Subscribe(_ =>
-        {
-        });
-        
+
+        OnButtonUp.Subscribe(_ => { });
+
         OnButtonRelease.Subscribe(_ =>
         {
-            switch (_currentState)
+            switch (CurrentState)
             {
                 case ActionButtonState.FishingBattle:
                     _onReleaseFishingBattleButton.OnNext(true);

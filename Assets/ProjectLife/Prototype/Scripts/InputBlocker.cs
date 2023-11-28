@@ -1,17 +1,13 @@
 using System;
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
 public class InputBlocker : MonoBehaviour
 {
-    [SerializeField] private Image _image;
-    
     private static Image _blockImage;
 
-    private static InputBlocker _inputBlocker = null;
-    
+    [SerializeField] private Image _image;
+
     private void Start()
     {
         _blockImage = _image;
@@ -23,7 +19,7 @@ public class InputBlocker : MonoBehaviour
     {
         _blockImage.raycastTarget = true;
     }
-    
+
     // 入力阻止を無効にする
     public static void Disable()
     {
